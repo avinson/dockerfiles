@@ -1,0 +1,30 @@
+[hekad]
+maxprocs = 4
+
+[DashboardOutput]
+ticker_interval = 30
+
+[debug_output]
+type = "LogOutput"
+encoder = "RstEncoder"
+message_matcher = "TRUE"
+[RstEncoder]
+
+[PayloadEncoder]
+append_newlines = true
+prefix_ts = false
+ts_format = "2006/01/02 3:04:05PM PST"
+
+[jsonlog]
+type = "LogstreamerInput"
+log_directory = "/"
+file_match = 'blob.json'
+decoder = "json_decoder"
+
+[json_decoder]
+type = "SandboxDecoder"
+script_type = "lua"
+filename = "lua_decoders/docker_json.lua"
+
+[json_decoder.config]
+type = "JSON"
