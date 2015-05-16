@@ -66,16 +66,20 @@ function parse_rfc3339_datetime(date)
     return dt.time_to_ns(t)
 end
 
-function flatten(json)
-  for k, v in pairs(json) do
-    if type(v) == "table" then
-      for l, w in pairs(flatten(v)) do
-        json[k .. '.' .. l] = w
+function flatten(tbl)
+  local result = {}
+
+  for k, v in pairs(tbl) do
+      if type(v) == "table" then
+          for subk, subv in pairs(flatten(v)) do
+              result[k .. '.' .. subk] = subv
+          end
+      else
+          result[k] = v
       end
-      json[k] = nil
-    end
   end
-  return json
+
+  return result
 end
 
 function process_message()

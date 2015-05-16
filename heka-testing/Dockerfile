@@ -10,6 +10,7 @@ WORKDIR /
 RUN wget https://github.com/mozilla-services/heka/releases/download/v${HEKA_VERSION}/heka_${HEKA_VERSION}_amd64.deb && dpkg -i heka_${HEKA_VERSION}_amd64.deb
 
 ADD ./docker_json.lua /usr/share/heka/lua_decoders/docker_json.lua
+ADD ./redshift.lua /usr/share/heka/lua_decoders/redshift.lua
 ADD . /
 
 # heka dashboard
