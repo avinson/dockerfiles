@@ -1,0 +1,46 @@
+[hekad]
+maxprocs = 4
+
+[DashboardOutput]
+ticker_interval = 30
+
+[debug_output]
+type = "LogOutput"
+encoder = "RstEncoder"
+message_matcher = "TRUE"
+[RstEncoder]
+
+[PayloadEncoder]
+append_newlines = true
+prefix_ts = false
+ts_format = "2006/01/02 3:04:05PM PST"
+
+[jsonlog]
+type = "LogstreamerInput"
+log_directory = "/"
+file_match = 'blob.json'
+decoder = "json_decoder"
+
+[json_decoder]
+type = "SandboxDecoder"
+script_type = "lua"
+filename = "lua_decoders/docker_json.lua"
+
+[json_decoder.config]
+type = "JSON"
+
+#[RedshiftOutput]
+#type = "SandboxOutput"
+#filename = "redshift.lua"
+#message_matcher = "Fields[service] == 'registry'"
+#memory_limit = 60000000
+#ticker_interval = 5
+  
+#[RedshiftOutput.config]
+#db_name = "dev"
+#db_user = "testuser"
+#db_password = "testuserpw"
+#db_host = "foobar.redshift.amazonaws.com"
+#db_port = 5439
+#buffer_file = "/var/tmp/redshift.insert"
+#flush_interval = 5
