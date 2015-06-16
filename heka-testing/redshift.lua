@@ -37,7 +37,7 @@ Config:
     [RedshiftOutput]
     type = "SandboxOutput"
     filename = "redshift.lua"
-    message_matcher = "Type == 'logfile'"
+    message_matcher = "Fields[service] == 'garant'"
     memory_limit = 60000000
     ticker_interval = 60
 
@@ -128,17 +128,19 @@ end
 -- plugin interfaces
 function process_message()
     if sep == " " then
-        fh:write("INSERT INTO logs VALUES")
+        fh:write("INSERT INTO garant_log (action_date, user_name , host_name, http_method, ip_address, user_agent, action, requested_access, granted_access, path_url) VALUES ")
     end
-    fh:write(string.format("%s(%d,%d,%d,'%s','%s','%s','%s','%s')", sep,
-    read_message("Timestamp"),
-    read_message("Severity") or 7,
-    read_message("Pid") or 0,
-    con:escape(read_message("Hostname")),
-    con:escape(read_message("Type")),
-    con:escape(read_message("Logger")),
-    con:escape(read_message("EnvVersion")),
-    con:escape(read_message("Payload"))))
+    fh:write(string.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')",
+    con:escape(read_message("Fields[time]")),
+    con:escape(read_message("Fields[acctSubject]")),
+    con:escape(read_message("Fields[http.request.host]")),
+    con:escape(read_message("Fields[http.request.method]")),
+    con:escape(read_message("Fields[http.request.remoteaddr]")),
+    con:escape(read_message("Fields[http.request.useragent]")),
+    con:escape(read_message("Fields[msg]")),
+    con:escape(read_message("Fields[requestedAccess.1.action]")),
+    con:escape(read_message("Fields[grantedAccess.1.action]")),
+    con:escape(read_message("Fields[http.request.uri]"))))
     sep = ","
 
     if fh:seek("end") >= buffer_size then

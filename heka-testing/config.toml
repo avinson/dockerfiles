@@ -29,18 +29,18 @@ filename = "lua_decoders/docker_json.lua"
 [json_decoder.config]
 type = "JSON"
 
-#[RedshiftOutput]
-#type = "SandboxOutput"
-#filename = "redshift.lua"
-#message_matcher = "Fields[service] == 'garant'"
-#memory_limit = 60000000
-#ticker_interval = 5
-  
-#[RedshiftOutput.config]
-#db_name = "dev"
-#db_user = "testuser"
-#db_password = "testuserpw"
-#db_host = "foobar.redshift.amazonaws.com"
-#db_port = 5439
-#buffer_file = "/var/tmp/redshift.insert"
-#flush_interval = 5
+[RedshiftOutput]
+type = "SandboxOutput"
+filename = "lua_decoders/redshift.lua"
+message_matcher = "Fields[service] == 'garant'"
+memory_limit = 60000000
+ticker_interval = 5
+
+[RedshiftOutput.config]
+db_name = ""
+db_user = ""
+db_password = ""
+db_host = ""
+db_port = 5439
+buffer_file = "/var/tmp/redshift.insert"
+flush_interval = 5
