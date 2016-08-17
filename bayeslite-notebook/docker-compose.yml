@@ -1,0 +1,13 @@
+version: '2'
+services:
+  bayes:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - /Users/${USER}/csv:/csv
+      - bayes-data:/notebooks
+
+volumes:
+  bayes-data:
+    driver: local
