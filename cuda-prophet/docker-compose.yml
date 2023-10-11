@@ -5,7 +5,7 @@ volumes:
 
 services:
   notebook:
-    build: .
+    image: avinson/cuda-prophet
     runtime: nvidia
     volumes:
       - work:/home/jovyan/work:cached
