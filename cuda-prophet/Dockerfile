@@ -28,7 +28,10 @@ RUN apt-get update --yes && \
     # - bzip2 is necessary to extract the micromamba executable.
     bzip2 \
     ca-certificates \
+    fonts-liberation \
     locales \
+    pandoc \
+    run-one \
     sudo \
     # - tini is installed as a helpful container entrypoint that reaps zombie
     #   processes and such of the actual executable we want to start, see
