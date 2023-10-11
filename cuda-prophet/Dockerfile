@@ -147,8 +147,7 @@ ENTRYPOINT ["tini", "-g", "--"]
 CMD ["start-notebook.sh"]
 
 # Copy local files as late as possible to avoid cache busting
-COPY run-hooks.sh start.sh /usr/local/bin/
-COPY start-notebook.sh start-singleuser.sh /usr/local/bin/
+COPY run-hooks.sh start.sh start-notebook.sh start-singleuser.sh /usr/local/bin/
 COPY jupyter_server_config.py docker_healthcheck.py /etc/jupyter/
 
 USER root
