@@ -1,6 +1,8 @@
 FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 #FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
 
+# docker run --rm -ti --runtime=nvidia --gpus all avinson/cuda-prophet python -c "import torch; print(torch.cuda.is_available())"
+
 ARG CUDA_VERSION=11.8
 ARG NEURAL_PROPHET_VERSION=1.0.0rc4
 ARG PYTORCH_VERSION=2.0.0
@@ -142,7 +144,7 @@ RUN set -x && \
     'jupyterhub' \
     'nbclassic' \
     "pytorch=${PYTORCH_VERSION}" \
-    'pytorch-lightning' \
+    "pytorch-lightning<2.0.0,>=1.9.4" \
     'torchvision' \
     'torchaudio' \
     "pytorch-cuda=${CUDA_VERSION}" \
@@ -179,9 +181,10 @@ RUN mamba install --yes \
     'numba' \
     'numexpr' \
     'openpyxl' \
-    'pandas' \
+    "pandas<2.0.0,>=1.3.5" \
     'patsy' \
     'plotly' \
+    "plotly-resampler<0.9.0.0,>=0.8.3.1" \
     'protobuf' \
     'pytables' \
     'scikit-image' \
@@ -206,11 +209,14 @@ RUN git clone https://github.com/PAIR-code/facets && \
     fix-permissions "/home/${NB_USER}"
 
 # backtesting.py, TabPFN, etc.
-# RUN pip install backtesting tabpfn yfinance
+RUN pip install --no-cache-dir backtesting tabpfn yfinance
 
-# RUN https://github.com/ourownstory/neural_prophet && \
-#     cd neural_prophet && git checkout ${NEURAL_PROPHET_VERSION} && \
-#     pip install .
+RUN git clone https://github.com/ourownstory/neural_prophet && \
+    cd neural_prophet && git checkout ${NEURAL_PROPHET_VERSION} && \
+    pip install --no-cache-dir . && cd /tmp && \
+    rm -rf /tmp/neural_prophet && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
