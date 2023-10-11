@@ -29,6 +29,7 @@ RUN apt-get update --yes && \
     bzip2 \
     ca-certificates \
     fonts-liberation \
+    git \
     locales \
     pandoc \
     run-one \
@@ -120,23 +121,48 @@ RUN set -x && \
     rm micromamba && \
     # Pin major.minor version of python
     mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
-    mamba install --yes pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia && \
+    mamba install --yes \
+    'jupyterlab' \
+    'notebook' \
+    'jupyterhub' \
+    'nbclassic' \
+    'pytorch' \
+    'torchvision' \
+    'torchaudio' \
+    'pytorch-cuda=12.1' \
+    -c pytorch -c nvidia && \
+    jupyter server --generate-config && \
     mamba clean --all -f -y && \
+    npm cache clean --force && \
+    jupyter lab clean && \
+    rm -rf "/home/${NB_USER}/.cache/yarn" && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
 
+ENV JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
 # Configure container startup
 ENTRYPOINT ["tini", "-g", "--"]
-CMD ["start.sh"]
+CMD ["start-notebook.sh"]
 
 # Copy local files as late as possible to avoid cache busting
 COPY run-hooks.sh start.sh /usr/local/bin/
+COPY start-notebook.sh start-singleuser.sh /usr/local/bin/
+COPY jupyter_server_config.py docker_healthcheck.py /etc/jupyter/
 
 USER root
+RUN fix-permissions /etc/jupyter/
 
 # Create dirs for startup hooks
 RUN mkdir /usr/local/bin/start-notebook.d && \
     mkdir /usr/local/bin/before-notebook.d
+
+# HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
+# This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
+# https://github.com/jupyter/docker-stacks/issues/915#issuecomment-1068528799
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
+    CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
 # Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
