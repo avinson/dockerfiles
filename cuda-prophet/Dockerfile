@@ -1,12 +1,13 @@
-# docker run --rm --runtime=nvidia --gpus all nvidia/cuda:12.1.0-devel-ubuntu22.04 nvidia-smi
-# docker run --rm -ti --runtime=nvidia --gpus all cuda bash
-FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+#FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
 
-#RUN conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+ARG CUDA_VERSION=11.8
+ARG NEURAL_PROPHET_VERSION=1.0.0rc4
+ARG PYTORCH_VERSION=2.0.0
+# Pin python version here, or set it to "default"
+ARG PYTHON_VERSION=3.10
 
-#RUN apt update && apt install -y python3 python3-pip
-#RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
+# Notebook user
 ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
@@ -25,23 +26,40 @@ RUN apt-get update --yes && \
     #   the ubuntu base image is rebuilt too seldom sometimes (less than once a month)
     apt-get upgrade --yes && \
     apt-get install --yes --no-install-recommends \
+    build-essential \
     # - bzip2 is necessary to extract the micromamba executable.
     bzip2 \
     ca-certificates \
+    cm-super \
+    curl \
+    dvipng \
+    ffmpeg \
+    fish \
     fonts-liberation \
     git \
+    less \
     locales \
+    nano-tiny \
+    openssh-client \
     pandoc \
     run-one \
+    texlive-xetex \
+    texlive-fonts-recommended \
+    texlive-plain-generic \
+    tzdata \
     sudo \
     # - tini is installed as a helpful container entrypoint that reaps zombie
     #   processes and such of the actual executable we want to start, see
     #   https://github.com/krallin/tini#why-tini for details.
     tini \
-    wget && \
+    wget \
+    xclip && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
+
+# Create alternative for nano -> nano-tiny
+RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10
 
 # Configure environment
 ENV CONDA_DIR=/opt/conda \
@@ -78,9 +96,6 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     fix-permissions "/home/${NB_USER}"
 
 USER ${NB_UID}
-
-# Pin python version here, or set it to "default"
-ARG PYTHON_VERSION=3.10
 
 # Setup work directory for backward-compatibility
 RUN mkdir "/home/${NB_USER}/work" && \
@@ -126,10 +141,11 @@ RUN set -x && \
     'notebook' \
     'jupyterhub' \
     'nbclassic' \
-    'pytorch' \
+    "pytorch=${PYTORCH_VERSION}" \
+    'pytorch-lightning' \
     'torchvision' \
     'torchaudio' \
-    'pytorch-cuda=12.1' \
+    "pytorch-cuda=${CUDA_VERSION}" \
     -c pytorch -c nvidia && \
     jupyter server --generate-config && \
     mamba clean --all -f -y && \
@@ -137,6 +153,69 @@ RUN set -x && \
     jupyter lab clean && \
     rm -rf "/home/${NB_USER}/.cache/yarn" && \
     fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
+
+# mamba downgrades these packages to previous major versions, which causes issues
+RUN echo 'jupyterlab >=4.0.4' >> "${CONDA_DIR}/conda-meta/pinned" && \
+    echo 'notebook >=7.0.2' >> "${CONDA_DIR}/conda-meta/pinned" && \
+    echo "pytorch ${PYTORCH_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned" && \
+    echo "pytorch-cuda ${CUDA_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+
+# Install Python 3 packages
+RUN mamba install --yes \
+    'altair' \
+    'beautifulsoup4' \
+    'bokeh' \
+    'bottleneck' \
+    'cloudpickle' \
+    'cython' \
+    'dask' \
+    'dill' \
+    'h5py' \
+    'ipympl'\
+    'ipywidgets' \
+    'jupyterlab-git' \
+    'matplotlib-base' \
+    'numba' \
+    'numexpr' \
+    'openpyxl' \
+    'pandas' \
+    'patsy' \
+    'plotly' \
+    'protobuf' \
+    'pytables' \
+    'scikit-image' \
+    'scikit-learn' \
+    'scipy' \
+    'seaborn' \
+    'sqlalchemy' \
+    'statsmodels' \
+    'sympy' \
+    'widgetsnbextension' \
+    'xlrd' && \
+    mamba clean --all -f -y && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
+
+# Install facets which does not have a pip or conda package at the moment
+WORKDIR /tmp
+RUN git clone https://github.com/PAIR-code/facets && \
+    jupyter nbclassic-extension install facets/facets-dist/ --sys-prefix && \
+    rm -rf /tmp/facets && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
+
+# backtesting.py, TabPFN, etc.
+# RUN pip install backtesting tabpfn yfinance
+
+# RUN https://github.com/ourownstory/neural_prophet && \
+#     cd neural_prophet && git checkout ${NEURAL_PROPHET_VERSION} && \
+#     pip install .
+
+# Import matplotlib the first time to build the font cache.
+ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
+
+RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions "/home/${NB_USER}"
 
 ENV JUPYTER_PORT=8888

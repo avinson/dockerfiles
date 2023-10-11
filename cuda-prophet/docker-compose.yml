@@ -5,7 +5,7 @@ volumes:
 
 services:
   notebook:
-    image: cuda
+    build: .
     runtime: nvidia
     volumes:
       - work:/home/jovyan/work:cached
@@ -14,7 +14,6 @@ services:
     user: root
     environment:
       GRANT_SUDO: 'yes'
-    command: start-notebook.sh --NotebookApp.custom_display_url=http://localhost:8888
     deploy:
       resources:
         reservations:
