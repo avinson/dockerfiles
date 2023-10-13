@@ -140,14 +140,15 @@ RUN set -x && \
     mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
     mamba install --yes \
     'jupyterlab' \
-    'notebook' \
     'jupyterhub' \
     'nbclassic' \
+    'notebook' \
     "pytorch=${PYTORCH_VERSION}" \
+    "pytorch-cuda=${CUDA_VERSION}" \
     "pytorch-lightning<2.0.0,>=1.9.4" \
+    'py-xgboost-gpu' \
     'torchvision' \
     'torchaudio' \
-    "pytorch-cuda=${CUDA_VERSION}" \
     -c pytorch -c nvidia && \
     jupyter server --generate-config && \
     mamba clean --all -f -y && \
@@ -182,6 +183,7 @@ RUN mamba install --yes \
     'numexpr' \
     'openpyxl' \
     "pandas<2.0.0,>=1.3.5" \
+    'pandas-datareader' \
     'patsy' \
     'plotly' \
     "plotly-resampler<0.9.0.0,>=0.8.3.1" \
@@ -209,7 +211,7 @@ RUN git clone https://github.com/PAIR-code/facets && \
     fix-permissions "/home/${NB_USER}"
 
 # backtesting.py, TabPFN, etc.
-RUN pip install --no-cache-dir backtesting tabpfn yfinance
+RUN pip install --no-cache-dir backtesting pandas_ta TA-Lib tabpfn yfinance
 
 RUN git clone https://github.com/ourownstory/neural_prophet && \
     cd neural_prophet && git checkout ${NEURAL_PROPHET_VERSION} && \
