@@ -146,7 +146,6 @@ RUN set -x && \
     "pytorch=${PYTORCH_VERSION}" \
     "pytorch-cuda=${CUDA_VERSION}" \
     "pytorch-lightning<2.0.0,>=1.9.4" \
-    'py-xgboost-gpu' \
     'torchvision' \
     'torchaudio' \
     -c pytorch -c nvidia && \
@@ -189,6 +188,7 @@ RUN mamba install --yes \
     "plotly-resampler<0.9.0.0,>=0.8.3.1" \
     'protobuf' \
     'pytables' \
+    'py-xgboost-gpu' \
     'scikit-image' \
     'scikit-learn' \
     'scipy' \
