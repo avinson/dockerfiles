@@ -1,6 +1,6 @@
 ## Overview
 
-Docker image for NeuralProphet using a [nvidia/cuda](https://hub.docker.com/r/nvidia/cuda/) base image for GPU acceleration and Jupyter functionality borrowed from the [jupyter/docker-stacks](https://github.com/jupyter/docker-stacks) project.
+Docker image for [NeuralProphet](https://github.com/ourownstory/neural_prophet) using a [nvidia/cuda](https://hub.docker.com/r/nvidia/cuda/) base image for GPU acceleration and Jupyter functionality borrowed from the [jupyter/docker-stacks](https://github.com/jupyter/docker-stacks) project.
 
 * NeuralProphet 1.0.0rc4
 * CUDA 11.8
